@@ -39,6 +39,7 @@ public class ListerAuteurs extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
+		response.setContentType("application/json");
 		
 		TypedQuery<Auteur> query = entityManager.createQuery("from Auteur", Auteur.class);
 		JSONArray jsonArrayResultat = new JSONArray();

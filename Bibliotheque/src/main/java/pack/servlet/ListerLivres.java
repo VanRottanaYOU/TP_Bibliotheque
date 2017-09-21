@@ -39,7 +39,7 @@ public class ListerLivres extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
-//		response.setContentType("application/json");
+		response.setContentType("application/json");
 		
 			TypedQuery<Livre> query = entityManager.createQuery("from Livre", Livre.class);
 			  System.out.println(query.getResultList().toString());

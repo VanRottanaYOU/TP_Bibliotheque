@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,14 +41,15 @@ public class ListerAuteurs extends HttpServlet {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 		
 		TypedQuery<Auteur> query = entityManager.createQuery("from Auteur", Auteur.class);
-
+		JSONArray jsonArrayResultat = new JSONArray();
+		JSONObject jObj; 
+		jObj = new JSONObject();
 		  for (int i = 0 ; i<query.getResultList().size();i++) {
 			  Auteur monAuteur = (Auteur) query.getResultList().get(i);
-			  JSONObject jObj;
-			  jObj = new JSONObject(monAuteur);
-			  response.getWriter().append(jObj.toString());
+			  jsonArrayResultat.put(monAuteur);			  			  		  
 		  } 
-		  
+		  jObj.put("listeAuteurs", jsonArrayResultat);
+		  response.getWriter().append(jObj.toString());
 		  entityManager.close();
 	}
 

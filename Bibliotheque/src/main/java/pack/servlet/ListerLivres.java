@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,13 +44,16 @@ public class ListerLivres extends HttpServlet {
 			TypedQuery<Livre> query = entityManager.createQuery("from Livre", Livre.class);
 			  System.out.println(query.getResultList().toString());
 			  
+			  JSONArray jsonArrayResultat = new JSONArray();
+			  JSONObject jObj; 
+			  jObj = new JSONObject();
 			  for (int i = 0 ; i<query.getResultList().size();i++) {
 				  Livre monLivre = (Livre) query.getResultList().get(i);
-				  JSONObject jObj;
-				  jObj = new JSONObject(monLivre);
-				  System.out.println(jObj.getClass());
-				  response.getWriter().append(jObj.toString());
-			  } 
+					  jsonArrayResultat.put(monLivre);			  			  		  
+				  } 
+			  jObj.put("listeLivres", jsonArrayResultat);
+			  response.getWriter().append(jObj.toString());
+			  entityManager.close();
 		  entityManager.close();
 //		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}

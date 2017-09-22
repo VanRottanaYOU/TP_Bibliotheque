@@ -54,10 +54,10 @@ public class ListerAuteurs extends HttpServlet {
 			  response.getWriter().append(jObj.toString());
 			  
 		} catch (RuntimeException e) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Echec affichage de la liste des auteurs");
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND,"Echec affichage de la liste des auteurs");
 			JSONObject jObj;
 			jObj = new JSONObject();
-			jObj.put("400","Echec affichage de la liste des auteurs");
+			jObj.put("404","Echec affichage de la liste des auteurs");
 			response.getWriter().append(jObj.toString());
 		}finally{
 			entityManager.close();

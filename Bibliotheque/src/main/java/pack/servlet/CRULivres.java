@@ -46,7 +46,7 @@ public class CRULivres extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
-//		response.setContentType("application/json");
+		response.setContentType("application/json");
 		System.out.println(request.getPathInfo());
 	
 		try {
@@ -71,10 +71,10 @@ public class CRULivres extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	
-//		doGet(request, response);
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
-
+		response.setContentType("application/json");
+		
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		Date date;
 		
@@ -100,7 +100,8 @@ public class CRULivres extends HttpServlet {
 		
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
-
+		response.setContentType("application/json");
+		
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		Date date;
 		BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
@@ -171,7 +172,6 @@ public class CRULivres extends HttpServlet {
 		}finally {
 			entityManager.close();
 		}						
-//	}
 }
 }
 

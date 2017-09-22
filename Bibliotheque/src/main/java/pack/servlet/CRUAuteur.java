@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -19,6 +21,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hibernate.service.spi.ServiceException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -74,18 +77,74 @@ public class CRUAuteur extends HttpServlet {
 	
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
+		
+		response.setContentType("application/json");
+		Pattern p = Pattern.compile("([a-zA-Z])");
+		boolean b= true;
+		
+		String res=request.getParameter("nom");
+		Matcher m = p.matcher(res);	
 
-		try {
-			Auteur monAuteur = new Auteur(request.getParameter("nom"),request.getParameter("prenom"),request.getParameter("langue"));
-			entityManager.getTransaction().begin();
-			entityManager.persist(monAuteur);
-			entityManager.getTransaction().commit();
-		} catch (Exception e) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Echec création de l'auteur");
+		if (!m.find()) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Erreur format du nom");
 			JSONObject jObj;
 			jObj = new JSONObject();
-			jObj.put("400","Echec création de l'auteur");
+			jObj.put("400","Erreur format du nom");
 			response.getWriter().append(jObj.toString());
+			b=false;
+			return;
+		}else{
+		
+			res=request.getParameter("prenom");
+			m = p.matcher(res);	
+	
+			if (!m.find()) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Erreur format du prenom");
+				JSONObject jObj;
+				jObj = new JSONObject();
+				jObj.put("400","Erreur format du prenom");
+				response.getWriter().append(jObj.toString());
+				b=false;
+				return;
+			}else {
+		
+				res=request.getParameter("langue");
+				m = p.matcher(res);	
+		
+				if (!m.find()) {
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Erreur format de la langue");
+					JSONObject jObj;
+					jObj = new JSONObject();
+					jObj.put("400","Erreur format de la langue");
+					response.getWriter().append(jObj.toString());
+					b=false;
+					return;
+				}
+			}	
+		}
+		try {
+			if(b) {
+				Auteur monAuteur = new Auteur(request.getParameter("nom"),request.getParameter("prenom"),request.getParameter("langue"));
+				entityManager.getTransaction().begin();
+				entityManager.persist(monAuteur);
+				entityManager.getTransaction().commit();
+			}	
+			else {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Echec création de l'auteur");
+				JSONObject jObj;
+				jObj = new JSONObject();
+				jObj.put("400","Echec création de l'auteur");
+				response.getWriter().append(jObj.toString());
+				return;
+			}
+		} catch (Exception e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Echec serveur");
+			JSONObject jObj;
+			jObj = new JSONObject();
+			jObj.put("500","Echec serveur");
+			response.getWriter().append(jObj.toString());
+		}finally {
+			entityManager.close();
 		}
 	}
 	
@@ -94,7 +153,9 @@ public class CRUAuteur extends HttpServlet {
 		
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
-
+		
+		response.setContentType("application/json");
+		
 		BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
 		String[] brokentext = null;
 		String text = "";
@@ -136,7 +197,6 @@ public class CRUAuteur extends HttpServlet {
 			}
 		} catch (RuntimeException e) {				
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Mise à jour non exécutée");
-
 			jsonArrayResultat.put("Mise à jour non exécutée");
 			jObj.put("erreur", jsonArrayResultat);
 			response.getWriter().append(jObj.toString());

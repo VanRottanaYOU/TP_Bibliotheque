@@ -41,17 +41,27 @@ public class ListerAuteurs extends HttpServlet {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 		response.setContentType("application/json");
 		
-		TypedQuery<Auteur> query = entityManager.createQuery("from Auteur", Auteur.class);
-		JSONArray jsonArrayResultat = new JSONArray();
-		JSONObject jObj; 
-		jObj = new JSONObject();
-		  for (int i = 0 ; i<query.getResultList().size();i++) {
-			  Auteur monAuteur = (Auteur) query.getResultList().get(i);
-			  jsonArrayResultat.put(monAuteur);			  			  		  
-		  } 
-		  jObj.put("listeAuteurs", jsonArrayResultat);
-		  response.getWriter().append(jObj.toString());
-		  entityManager.close();
+		try {
+			TypedQuery<Auteur> query = entityManager.createQuery("from Auteur", Auteur.class);
+			JSONArray jsonArrayResultat = new JSONArray();
+			JSONObject jObj; 
+			jObj = new JSONObject();
+			  for (int i = 0 ; i<query.getResultList().size();i++) {
+				  Auteur monAuteur = (Auteur) query.getResultList().get(i);
+				  jsonArrayResultat.put(monAuteur);			  			  		  
+			  } 
+			  jObj.put("listeAuteurs", jsonArrayResultat);
+			  response.getWriter().append(jObj.toString());
+			  
+		} catch (RuntimeException e) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Echec affichage de la liste des auteurs");
+			JSONObject jObj;
+			jObj = new JSONObject();
+			jObj.put("400","Echec affichage de la liste des auteurs");
+			response.getWriter().append(jObj.toString());
+		}finally{
+			entityManager.close();
+		}
 	}
 
 

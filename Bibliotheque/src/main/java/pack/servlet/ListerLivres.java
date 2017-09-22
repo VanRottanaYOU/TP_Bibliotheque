@@ -41,21 +41,28 @@ public class ListerLivres extends HttpServlet {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 		response.setContentType("application/json");
 		
-			TypedQuery<Livre> query = entityManager.createQuery("from Livre", Livre.class);
-			  System.out.println(query.getResultList().toString());
-			  
-			  JSONArray jsonArrayResultat = new JSONArray();
-			  JSONObject jObj; 
-			  jObj = new JSONObject();
-			  for (int i = 0 ; i<query.getResultList().size();i++) {
-				  Livre monLivre = (Livre) query.getResultList().get(i);
-					  jsonArrayResultat.put(monLivre);			  			  		  
-				  } 
-			  jObj.put("listeLivres", jsonArrayResultat);
-			  response.getWriter().append(jObj.toString());
+			try {
+				TypedQuery<Livre> query = entityManager.createQuery("from Livre", Livre.class);
+				  System.out.println(query.getResultList().toString());
+				  
+				  JSONArray jsonArrayResultat = new JSONArray();
+				  JSONObject jObj; 
+				  jObj = new JSONObject();
+				  for (int i = 0 ; i<query.getResultList().size();i++) {
+					  Livre monLivre = (Livre) query.getResultList().get(i);
+						  jsonArrayResultat.put(monLivre);			  			  		  
+					  } 
+				  jObj.put("listeLivres", jsonArrayResultat);
+				  response.getWriter().append(jObj.toString());
+			} catch (RuntimeException e) {
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Echec affichage de la liste des livres");
+					JSONObject jObj;
+					jObj = new JSONObject();
+					jObj.put("400","Echec affichage de la liste des livres");
+					response.getWriter().append(jObj.toString());
+			}finally {
 			  entityManager.close();
-		  entityManager.close();
-//		response.getWriter().append("Served at: ").append(request.getContextPath());
+			}
 	}
 
 

@@ -13,11 +13,13 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,42 +38,55 @@ public class CRUAuteur extends HttpServlet {
  
     public CRUAuteur() {
         super();
-        // TODO Auto-generated constructor stub
+
     }
 
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
-//		response.setContentType("application/json");
-		System.out.println(request.getPathInfo());
-	
-		if (!request.getPathInfo().substring(1).equals(null))
-		{
-			Auteur monAuteur = entityManager.find(Auteur.class, Integer.parseInt(request.getPathInfo().substring(1)));
+		response.setContentType("application/json");
+		
+		try {
+			if (!request.getPathInfo().substring(1).equals(null))
+			{
+				Auteur monAuteur = entityManager.find(Auteur.class, Integer.parseInt(request.getPathInfo().substring(1)));
+				JSONObject jObj;
+				jObj = new JSONObject(monAuteur);
+				response.getWriter().append(jObj.toString());
+			}
+		} catch (RuntimeException e) {	
+			
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND,"Auteur inconnu");
 			JSONObject jObj;
-			jObj = new JSONObject(monAuteur);
-			System.out.println(jObj.getClass());
+			jObj = new JSONObject();
+			jObj.put("404", "auteur inconnu");
 			response.getWriter().append(jObj.toString());
+
+		}finally {
+			entityManager.close();
 		}
-		  entityManager.close();
-//		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}
 
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-//		doGet(request, response);
+	
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("bibliotheque");
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
-		System.out.println(request.getParameter("idAuteur"));
-		System.out.println(request.getParameter("nom"));
-		System.out.println(request.getParameter("prenom"));
-		System.out.println(request.getParameter("langue"));
-		Auteur monAuteur = new Auteur(request.getParameter("nom"),request.getParameter("prenom"),request.getParameter("langue"));
-		entityManager.getTransaction().begin();
-		entityManager.persist(monAuteur);
-		entityManager.getTransaction().commit();
+
+		try {
+			Auteur monAuteur = new Auteur(request.getParameter("nom"),request.getParameter("prenom"),request.getParameter("langue"));
+			entityManager.getTransaction().begin();
+			entityManager.persist(monAuteur);
+			entityManager.getTransaction().commit();
+		} catch (Exception e) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Echec création de l'auteur");
+			JSONObject jObj;
+			jObj = new JSONObject();
+			jObj.put("400","Echec création de l'auteur");
+			response.getWriter().append(jObj.toString());
+		}
 	}
 	
 	
@@ -86,13 +101,16 @@ public class CRUAuteur extends HttpServlet {
 		text=br.readLine();
 		System.out.println("text :" + text.toString());
 		brokentext = text.split("&");
+		JSONArray jsonArrayResultat = new JSONArray();
+		JSONObject jObj;
+		jObj = new JSONObject();
+		
 		try {
 			String[] brokentext2 = null;
 			brokentext2 = brokentext[0].split("=");
 			Auteur monAuteur = entityManager.find(Auteur.class, Integer.parseInt(brokentext2[1]));
 			if (!monAuteur.equals(null))
-			{
-				
+			{				
 				entityManager.getTransaction().begin();
 				brokentext2 = null;
 				brokentext2 = brokentext[1].split("=");
@@ -111,12 +129,20 @@ public class CRUAuteur extends HttpServlet {
 				entityManager.getTransaction().commit();
 			}
 			else {
-				System.out.println("pas d'auteur");
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND,"Auteur inconnu");
+				jsonArrayResultat.put("Auteur inconnu");
+				jObj.put("erreur", jsonArrayResultat);
+				response.getWriter().append(jObj.toString());
 			}
-		} catch (RuntimeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}				
+		} catch (RuntimeException e) {				
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Mise à jour non exécutée");
+
+			jsonArrayResultat.put("Mise à jour non exécutée");
+			jObj.put("erreur", jsonArrayResultat);
+			response.getWriter().append(jObj.toString());
+		}finally {
+			entityManager.close();
+		}			
 
 }
 }

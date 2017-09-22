@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,16 +49,23 @@ public class CRULivres extends HttpServlet {
 //		response.setContentType("application/json");
 		System.out.println(request.getPathInfo());
 	
-		if (!request.getPathInfo().substring(1).equals(null))
-		{
-			Livre monLivre = entityManager.find(Livre.class, Integer.parseInt(request.getPathInfo().substring(1)));
+		try {
+			if (!request.getPathInfo().substring(1).equals(null))
+			{
+				Livre monLivre = entityManager.find(Livre.class, Integer.parseInt(request.getPathInfo().substring(1)));
+				JSONObject jObj;
+				jObj = new JSONObject(monLivre);
+				response.getWriter().append(jObj.toString());
+			}
+		} catch (RuntimeException e) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND,"Livre inconnu");
 			JSONObject jObj;
-			jObj = new JSONObject(monLivre);
-			System.out.println(jObj.getClass());
+			jObj = new JSONObject();
+			jObj.put("404", "livre inconnu");
 			response.getWriter().append(jObj.toString());
-		}
+		}finally {
 		  entityManager.close();
-//		response.getWriter().append("Served at: ").append(request.getContextPath());
+		}  
 	}
 
 
@@ -69,6 +77,7 @@ public class CRULivres extends HttpServlet {
 
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		Date date;
+		
 		try {
 			date = formatter.parse(request.getParameter("datePublication"));
 			Auteur monAuteur = entityManager.find(Auteur.class, Integer.parseInt(request.getParameter("idAuteur")));
@@ -78,9 +87,12 @@ public class CRULivres extends HttpServlet {
 			entityManager.getTransaction().begin();
 			entityManager.persist(monLivre);
 			entityManager.getTransaction().commit();
-		} catch (ParseException e) {
-			
-			e.printStackTrace();
+		} catch (ParseException e) {			
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Echec création du livre");
+			JSONObject jObj;
+			jObj = new JSONObject();
+			jObj.put("400","Echec création du livre");
+			response.getWriter().append(jObj.toString());
 		}				
 	}
 	
@@ -97,6 +109,10 @@ public class CRULivres extends HttpServlet {
 		text=br.readLine();
 		System.out.println("text :" + text.toString());
 		brokentext = text.split("&");
+		JSONArray jsonArrayResultat = new JSONArray();
+		JSONObject jObj;
+		jObj = new JSONObject();
+		
 		try {
 			String[] brokentext2 = null;
 			brokentext2 = brokentext[1].split("=");
@@ -141,12 +157,20 @@ public class CRULivres extends HttpServlet {
 				entityManager.getTransaction().commit();
 			}
 			else {
-				System.out.println("pas d'auteur");
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND,"Livre inconnu");
+				jsonArrayResultat.put("Livre inconnu");
+				jObj.put("erreur", jsonArrayResultat);
+				response.getWriter().append(jObj.toString());
 			}
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}				
+		} catch (ParseException e) {				
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST,"Mise à jour non exécutée");
+
+			jsonArrayResultat.put("Mise à jour non exécutée, problèm de format date");
+			jObj.put("erreur", jsonArrayResultat);
+			response.getWriter().append(jObj.toString());
+		}finally {
+			entityManager.close();
+		}						
 //	}
 }
 }
